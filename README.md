@@ -56,7 +56,7 @@ Sampling:
 
 To play chess against the engine, move the ckpt.pt file to out-chessGPT-char (if it isn't there already) and then type
 
-python3 test_against_engine.py
+python3 play.py
 
 ...into your terminal. This should create an emoji-based chessboard (utf supported!)
 You'll play white (for really complicated factors relating to how I completely botched creating the training data, it's not possible to play as black) and
