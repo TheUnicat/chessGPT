@@ -40,7 +40,9 @@ Do NOT torch.compile model, it will fail :(
 Dependencies:
 
 PyTorch (1.13.1 is preferred)
+
 NumPy
+
 python-chess
 
 Sampling:
