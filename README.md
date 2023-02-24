@@ -1,10 +1,14 @@
 # chessGPT
 A chess engine built on the decision transformer architecture. Built with nanoGPT by Andrej Karpathy.
 
+Currently working on a second version with pretraining on randomly-generated trajectories to reduce overfitting.
+
+
 IF YOU DON'T HAVE PYTHON:
 
 Go to python.org and install python.
 Go to the command line or terminal (depending on os) and download repositories by typing the below commands into the shell, one-by-one:
+
 
 pip install torch
 
@@ -13,6 +17,7 @@ pip install numpy
 pip install chess
 
 (Try "pip3" on macOS or if pip fails)
+
 
 Next, download this repository by clicking the green 'Code' button on the main page of the repository, followed by 'local'. Click 'Download ZIP'.
 Unzip file.
@@ -39,11 +44,13 @@ Do NOT torch.compile model, it will fail :(
 
 Dependencies:
 
+
 PyTorch (1.13.1 is preferred)
 
 NumPy
 
 python-chess
+
 
 Sampling:
 
@@ -59,3 +66,16 @@ The engine was trained on a sanitized dataset of 500k human chess games. ChessGP
 capture hanging pieces! It suffers from significant overfitting problems in the early game and will often make mistakes if confronted with offbeat 
 opening lines. Generating trajectories is a two-step process. The model first "self-prompts" the returns-to-go (i.e. moves until game end) from the
 current state and a condition of victory. The reward is then combined with the last n board & move encodings (default 3) to generate the next action.
+
+
+TODOs:
+
+-Bundle cleanser_chess.py sanitization functions into one function
+
+-Edit training script to be compatible with torch.compile and PyTorch Nightly
+
+-Allow command line arguments for context length and temperature when sampling
+
+-Build v2 with pretraining on a corpus of randomly-generated chess games followed by finetuning on expert games
+
+-Write function for evaluating against stockfish
