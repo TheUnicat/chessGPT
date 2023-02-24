@@ -1,13 +1,10 @@
 """
 This training script can be run both on a single gpu in debug mode,
 and also in a larger training run with distributed data parallel (ddp).
-
 To run on a single GPU, example:
 $ python train.py --batch_size=32 --compile=False
-
 To run with DDP on 4 gpus on 1 node, example:
 $ torchrun --standalone --nproc_per_node=4 train.py
-
 To run with DDP on 4 gpus across 2 nodes, example:
 - Run on the first (master) node with example IP 123.456.123.456:
 $ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=0 --master_addr=123.456.123.456 --master_port=1234 train.py
@@ -21,30 +18,31 @@ import time
 import math
 import pickle
 from contextlib import nullcontext
-#from test_against_engine import metatest
+
 import numpy as np
 import torch
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
 
 from model import GPTConfig, GPT
-with torch.no_grad():
-    torch.cuda.empty_cache()
+
 # -----------------------------------------------------------------------------
+# default config values designed to train a gpt2 (124M) on OpenWebText
+# I/O
 out_dir = 'out'
-eval_interval = 500
-log_interval = 10
+eval_interval = 2000
+log_interval = 1
 eval_iters = 200
 eval_only = False # if True, script exits right after the first eval
 always_save_checkpoint = True # if True, always save a checkpoint after each eval
-init_from = 'resume' # 'scratch' or 'resume' or 'gpt2*'
+init_from = 'scratch' # 'scratch' or 'resume' or 'gpt2*'
 # wandb logging
 wandb_log = False # disabled by default
 wandb_project = 'owt'
 wandb_run_name = 'gpt2' # 'run' + str(time.time())
 # data
 dataset = 'openwebtext'
-gradient_accumulation_steps = 1 # used to simulate larger batch sizes
+gradient_accumulation_steps = 5 # used to simulate larger batch sizes
 batch_size = 12 # if gradient_accumulation_steps > 1, this is the micro-batch size
 block_size = 1024
 # model
@@ -56,7 +54,7 @@ bias = False # do we use bias inside LayerNorm and Linear layers?
 # adamw optimizer
 learning_rate = 6e-4 # max learning rate
 max_iters = 600000 # total number of training iterations
-weight_decay = 1e-2
+weight_decay = 1e-1
 beta1 = 0.9
 beta2 = 0.95
 grad_clip = 1.0 # clip gradients at this value, or disable if == 0.0
@@ -68,9 +66,9 @@ min_lr = 6e-5 # minimum learning rate, should be ~= learning_rate/10 per Chinchi
 # DDP settings
 backend = 'nccl' # 'nccl', 'gloo', etc.
 # system
-device = 'cuda' # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1' etc., or try 'mps' on macbooks
+device = 'cpu' # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1' etc., or try 'mps' on macbooks
 dtype = 'bfloat16' # 'float32', 'bfloat16', or 'float16', the latter will auto implement a GradScaler
-compile = False # use PyTorch 2.0 to compile the model to be faster
+compile = True # use PyTorch 2.0 to compile the model to be faster
 # -----------------------------------------------------------------------------
 config_keys = [k for k,v in globals().items() if not k.startswith('_') and isinstance(v, (int, float, bool, str))]
 exec(open('configurator.py').read()) # overrides from command line or config file
@@ -83,16 +81,15 @@ if ddp:
     init_process_group(backend=backend)
     ddp_rank = int(os.environ['RANK'])
     ddp_local_rank = int(os.environ['LOCAL_RANK'])
-    world_size = int(os.environ['WORLD_SIZE']) # total number of training processes
     device = f'cuda:{ddp_local_rank}'
     torch.cuda.set_device(device)
     master_process = ddp_rank == 0 # this process will do logging, checkpointing etc.
     seed_offset = ddp_rank # each process gets a different seed
 else:
     # if not ddp, we are running on a single gpu, and one process
-    world_size = 1
     master_process = True
     seed_offset = 0
+    gradient_accumulation_steps *= 8 # simulate 8 gpus
 
 if master_process:
     os.makedirs(out_dir, exist_ok=True)
@@ -239,6 +236,7 @@ if wandb_log and master_process:
 X, Y = get_batch('train') # fetch the very first batch
 t0 = time.time()
 local_iter_num = 0 # number of iterations in the lifetime of this process
+raw_model = model.module if ddp else model # unwrap DDP container if needed
 running_mfu = -1.0
 while True:
 
@@ -250,7 +248,6 @@ while True:
     # evaluate the loss on train/val sets and write checkpoints
     if iter_num % eval_interval == 0 and master_process:
         losses = estimate_loss()
-        #metatest(model)
         print(f"step {iter_num}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
         if wandb_log:
             wandb.log({
@@ -262,7 +259,6 @@ while True:
             })
         if losses['val'] < best_val_loss or always_save_checkpoint:
             best_val_loss = losses['val']
-            raw_model = model.module if ddp else model
             if iter_num > 0:
                 checkpoint = {
                     'model': raw_model.state_dict(),
@@ -309,17 +305,9 @@ while True:
     if iter_num % log_interval == 0 and master_process:
         lossf = loss.item() # loss as float. note: this is a CPU-GPU sync point
         if local_iter_num >= 5: # let the training loop settle a bit
-            mfu = model.estimate_mfu(batch_size * world_size * gradient_accumulation_steps, dt)
-            try:
-                running_mfu = mfu if running_mfu == -1.0 else 0.9*running_mfu + 0.1*mfu
-            except:
-                print(mfu)
-                print(running_mfu)
-        try:
-            print(f"iter {iter_num}: loss {lossf:.4f}, time {dt*1000:.2f}ms, mfu {running_mfu*100:.2f}% of an A100 GPU")
-        except:
-            print(f"iter {iter_num}: loss {lossf:.4f}, time {dt*1000:.2f}ms")
-            print(running_mfu)
+            mfu = raw_model.estimate_mfu(batch_size * gradient_accumulation_steps, dt)
+            running_mfu = mfu if running_mfu == -1.0 else 0.9*running_mfu + 0.1*mfu
+        print(f"iter {iter_num}: loss {lossf:.4f}, time {dt*1000:.2f}ms, mfu {running_mfu*100:.2f}%")
     iter_num += 1
     local_iter_num += 1
 
