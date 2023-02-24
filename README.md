@@ -1,5 +1,5 @@
 # chessGPT
-A chess engine built on the decision transformer architecture.
+A chess engine built on the decision transformer architecture. Built with nanoGPT by Andrej Karpathy.
 
 IF YOU DON'T HAVE PYTHON:
 
@@ -29,7 +29,7 @@ SKIP TRAINING STEP IF YOU ALREADY POSSESS MODEL WEIGHTS (ckpt.pt file) in the pa
 
 To train a chessGPT model (add data to data/chess before doing this), simply type 
 
-python3 train.py config/train_chess.py --init_from=resume --device=cuda --max_iters=100000
+python3 train.py config/train_chess.py --init_from=scratch --device=cuda --max_iters=100000
 
 ...into the command line if you have a GPU. If you only have a MacBook, or other personal computer, replace "cuda" with "cpu" or "mps" (on MacBook).
 This is strongly discouraged as it will take an extremely long time to train the model to even play legal moves. A minimum of one GPU is recommended,
