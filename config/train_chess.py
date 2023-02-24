@@ -14,7 +14,7 @@ wandb_project = 'shakespeare-char'
 wandb_run_name = 'mini-gpt'
 
 dataset = 'chess'
-batch_size = 32
+batch_size = 16
 block_size = 512 # context of up to 256 previous characters
 
 # baby GPT model :)
@@ -23,14 +23,12 @@ n_head = 32
 n_embd = 512
 dropout = 0.2
 
-learning_rate = 6e-5 # with baby networks can afford to go a bit higher
+learning_rate = 6e-4 # with baby networks can afford to go a bit higher
 max_iters = 500000
 lr_decay_iters = 40000  # make equal to max_iters usually
-min_lr = 5e-6 # learning_rate / 10 usually
+min_lr = 6e-5 # learning_rate / 10 usually
 beta2 = 0.99 # make a bit bigger because number of tokens per iter is small
 
-warmup_iters = 100 # not super necessary potentially
-#compile = True
-# on macbook also add
-# device = 'cpu'  # run on cpu only
-# compile = False # do not torch compile the model
+warmup_iters = 1000 # not super necessary potentially
+compile = False
+
