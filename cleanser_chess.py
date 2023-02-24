@@ -1,3 +1,7 @@
+# This file is a smorgsabord of deprecated and useful sanitization functions that I used to create the dataset
+# TODO: Cleanup this file into one sanitization function for pgn files
+# Please don't try to use this; treat it like a museum exhibit
+
 import chess
 import random
 def clean_file(input_file, output_file, save_interval):
