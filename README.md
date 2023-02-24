@@ -7,7 +7,9 @@ Go to python.org and install python.
 Go to the command line or terminal (depending on os) and download repositories by typing the below commands into the shell, one-by-one:
 
 pip install torch
+
 pip install numpy
+
 pip install chess
 
 (Try "pip3" on macOS or if pip fails)
