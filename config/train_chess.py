@@ -1,34 +1,33 @@
-# train a miniature character-level shakespeare model
-# good for debugging and playing on macbooks and such
+# train chessGPT based on your dataset
+# default values, can be overridden in command line based on your hardware and preferences
 
 out_dir = 'out-chessGPT-char'
-eval_interval = 2000 # keep frequent because we'll overfit
+eval_interval = 2000 # keep infrequent because training will take a long time
 eval_iters = 200
 log_interval = 10 # don't print too too often
 
-# we expect to overfit on this small dataset, so only save when val improves
-always_save_checkpoint = False
+# Learning can happen even if loss does not go down
+# Downstream performance can increase despite loss not decreasing
+always_save_checkpoint = True
 
-wandb_log = False # override via command line if you like
-wandb_project = 'shakespeare-char'
-wandb_run_name = 'mini-gpt'
+wandb_log = False # Please don't do this
 
 dataset = 'chess'
 batch_size = 16
 block_size = 512 # context of up to 256 previous characters
 
-# baby GPT model :)
+# chessGPT :)
 n_layer = 16
 n_head = 32
 n_embd = 512
 dropout = 0.2
 
-learning_rate = 6e-4 # with baby networks can afford to go a bit higher
-max_iters = 500000
-lr_decay_iters = 40000  # make equal to max_iters usually
+learning_rate = 6e-4 # learning rate can be higher with medium-sized (~50M parameters for chessGPT) networks
+max_iters = 100000 # Adjust based on your preferences
+lr_decay_iters = 100000  # Cosine learning decay is used, so keep it equal to max_iters
 min_lr = 6e-5 # learning_rate / 10 usually
 beta2 = 0.99 # make a bit bigger because number of tokens per iter is small
 
-warmup_iters = 1000 # not super necessary potentially
-compile = False
+warmup_iters = 1000 # keep this
+compile = False # only change if you've fixed the problems with this
 
