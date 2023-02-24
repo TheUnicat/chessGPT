@@ -2,7 +2,6 @@ import chess
 import chess.engine
 import time
 import os
-import chess.svg
 import re
 import random
 import contextlib
@@ -13,7 +12,6 @@ Sample from a trained model
 import pickle
 from contextlib import nullcontext
 import torch
-import tiktoken
 from model import GPTConfig, GPT
 import random
 
@@ -68,7 +66,6 @@ def prompt_gpt(prompt, new_tokens, compiley, devicey, home, modele=False):
         #print(f"Loading meta from {meta_path}...")
     with open("data/chess/meta.pkl", 'rb') as f:
         meta = pickle.load(f)
-        # TODO want to make this more general to arbitrary encoder/decoder schemes
     stoi, itos = meta['stoi'], meta['itos']
     encode = lambda s: [stoi[c] for c in s]
     decode = lambda l: ''.join([itos[i] for i in l])
@@ -89,34 +86,6 @@ def prompt_gpt(prompt, new_tokens, compiley, devicey, home, modele=False):
 
                 return decode(y[0].tolist())
 
-
-
-
-
-
-
-
-
-
-
-
-def strip_unfinished():
-    game = 0
-    with open("individual_chess.txt", "r") as processed_file, open("processed_chess.txt", "w") as individual_file:
-        new_line = "" # initialize an empty string to store each game
-        for line in processed_file:
-            game += 1
-            if game %  10000 == 0:
-                print(f'{game/10000} ten thousand lines done!')
-            # if the line starts with "[[[[[", this means it is a result line and a new game is starting
-            if line.startswith("[[[[[*"):
-                continue
-            else:
-                individual_file.write(line)
-                # if it is not a result line, remove the newline characters and add the line to new_line
-
-#result, last_move = sanitizere(input_file, output_file)
-#cleaner()
 def pad_string(s):
     while len(s) < 4:
         s = '[' + s
@@ -144,29 +113,21 @@ def algebraic_to_coord(move, board):
     else:
         return start_square + end_square + 'M'
 def parse_and_edit_string(input_str, value):
-    #print(input_str)
-    if input_str == "":
-        print("HELP!!!!")
     if input_str == "":
         board = chess.Board()
         return "W" + board_encoding(board) + "H" + pad_string(value)
     substrings = [substr for substr in re.findall(r"[HX,].{4}", input_str) if substr[0] in ['H', 'X', ',']]
-    #print(substrings)
     if len(substrings) == 0:
         output_string = input_str + ("H" + pad_string(value))
-        #print(output_string)
         return output_string
     new_strings = []
     substrings.append('H' + pad_string(value))
     for i in substrings:
         new_strings.append("H" + pad_string(str(int(value) + (len(substrings) - (substrings.index(i) + 1)))))
     final_value = new_strings[-1]
-    #print(new_strings)
     new_strings.pop(-1)
-    #print("hi!")
     output_str = ''
     i = 0
-    #print(new_strings)
     while i < len(input_str):
         if input_str[i] in ['H', 'X', ','] and i + 5 < len(input_str):
             output_str += new_strings[0]
@@ -176,10 +137,8 @@ def parse_and_edit_string(input_str, value):
             output_str += input_str[i]
             i += 1
     output_str += ("H" + pad_string(value))
-    #print(output_str)
     return output_str
 
-#parse_and_edit_string("Wrnbqkbnrpppppppp--------------------------------PPPPPPPPRNBQKBNRYYYYH[[35Wrnbqkbnrpppppppp--------------------------------PPPPPPPPRNBQKBNRYYYYH[[34Wrnbqkbnrpppppppp--------------------------------PPPPPPPPRNBQKBNRYYYY", "20")
 def board_encoding(board, black=False):
     encoding = ""
     if black == False:
@@ -453,14 +412,10 @@ def comp_rewards(board, colour, compiley=False, devicey='cpu', home=True, model=
 def chessGPT(board, moves_list, colour, model=False):
     try:
         new_prompt_reward = comp_rewards(board, colour, model)[-4:].strip("[")
-        print(new_prompt_reward)
         new_prompt = new_game_encoder(colour, "H100", moves_list, san=False, is_list=True)
-        #print(new_prompt)
         new_prompt = parse_and_edit_string(new_prompt, str(new_prompt_reward))
-        #print(new_prompt)
         with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
             reply = prompt_gpt(new_prompt, 6, False, "cpu", True, model)
-        #print(reply[-10:])
         try:
             reply = decode_to_move(new_prompt, reply)
             if not reply[0] == False:
@@ -608,45 +563,31 @@ def metatest(num_games=10, model = False):
     print(f"{str(total_rewards / num_games)} average reward.")
 
 def play_game_with_human(model = False):
-    # Initialize the chess board and engine
+    # Initialize the chess board
     board = chess.Board()
-    #engine = chess.engine.SimpleEngine.popen_uci("stockfish")
     did_illegal = False
-    # Choose the player's color randomly
-    player_color = chess.WHITE if bool(random.getrandbits(1)) else chess.BLACK
-
     # Initialize the moves list
     moves_list = []
-    comp_colour = 0 if player_color == chess.WHITE else 1
-    #print(comp_colour)
-    #comp_colour = 0
-    #print(player_color)
     comp_colour = 1
-    flag = 0
-    flaggy = False
     player_color = chess.BLACK
     # Play the game
     while not board.is_game_over():
-        if board.turn == player_color or flaggy == True:
-            print_pos(board)
-            if flag == 0:
-                print("It's chessGPT's turn!")
-                print("Please wait for the computer to move:")
-                print(" ")
-                print(" ")
-                print(" ")
+        if board.turn == player_color:
+            print_pos(board):
+            print("It's chessGPT's turn!")
+            print("Please wait for the computer to move:")
+            print(" ")
+            print(" ")
+            print(" ")
             real_valid_move = False
             invalid_count = 0
             while real_valid_move == False:
                 valid_move = False
-                # Get the player's move
-                #print(movess)
-                #for move in moves_list:
-                    #print(type(move))
                 if model == False:
                     while valid_move == False:
                         try:
-                            player_move = chessGPT(board, moves_list, comp_colour) # Replace with your own implementation
+                            #Get chessGPT move and check if illegal. ChessGPT forfeits after trying to make three illegal moves in a row.
+                            player_move = chessGPT(board, moves_list, comp_colour)
                             if player_move == False:
                                 invalid_count += 1
                                 if invalid_count > 3:
@@ -660,7 +601,7 @@ def play_game_with_human(model = False):
                 else:
                     while valid_move == False:
                         try:
-                            player_move = chessGPT(board, moves_list, comp_colour, model) # Replace with your own implementation
+                            player_move = chessGPT(board, moves_list, comp_colour, model)
                             if player_move == False:
                                 invalid_count += 1
                                 if invalid_count > 3:
@@ -672,7 +613,6 @@ def play_game_with_human(model = False):
                                 return len(moves_list), True, 0
                 # Make the move on the board
                 moveyy = chess.Move.from_uci(player_move)
-                #print(player_move)
                 try:
                     if moveyy in list(board.legal_moves):
                         board.push(moveyy)
@@ -686,17 +626,12 @@ def play_game_with_human(model = False):
                     invalid_count += 1
                     if invalid_count > 3:
                         return len(moves_list), True, 0
-                #print(board)
-                #print(moves_list)
-            # Add the move to the moves list
         else:
             print_pos(board)
             print("It's your turn! Type your move below:")
             print(" ")
             print(" ")
             print(" ")
-            # Get the engine's move
-            #time.sleep(1)
             valid_move = False
             has_tried = False
             while valid_move == False:
@@ -704,8 +639,9 @@ def play_game_with_human(model = False):
                     
                     print("Invalid move. Please try again.")
                 try:
-                    #result = engine.play(board, chess.engine.Limit(time=1))
+                    #Get human move and check if legal
                     human_move = str(input("enter move:"))
+                    #Restarts game if human player inputs "end"
                     if human_move == "end":
                         print("Game restarted.")
                         return
@@ -715,14 +651,8 @@ def play_game_with_human(model = False):
                     valid_move = True
                 except:
                     has_tried = True
-            #print(board)
             moves_list.append(board.move_stack[-1])
-            #print(moves_list)
-            # Add the move to the moves list
-
-    # Close the engine
-    #engine.quit()
-    import time
+    #Print result and pauses for a short moment
     if board.result() == "1-0":
         result = 0
         print("YOU WON!")
