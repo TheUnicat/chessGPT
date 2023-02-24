@@ -5,6 +5,7 @@ Start by moving the directory into your Documents folder. Navigate to the comman
 cd Documents/chessGPT
 
 ...and hit enter.
+SKIP TRAINING STEP IF YOU ALREADY POSSESS MODEL WEIGHTS (ckpt.pt file). Jump to the "play chess against engine" section.
 To train a chessGPT model (add data to data/chess before doing this), simply type 
 
 python3 train.py config/train_chess.py --init_from=resume --device=cuda --max_iters=100000
@@ -25,7 +26,7 @@ To play chess against the engine, move the ckpt.pt file to out-chessGPT-char (if
 python3 test_against_engine.py
 
 ...into your terminal. This should create an emoji-based chessboard (utf supported!)
-You'll play white (for really complicated reasons relating to how I completely botched creating the training data, it's not possible to play as black) and
+You'll play white (for really complicated factors relating to how I completely botched creating the training data, it's not possible to play as black) and
 the computer should reply within ~5-10 seconds, even on cpu. 
 
 The engine was trained on a sanitized dataset of 500k human chess games. ChessGPT is not a strong chess engine by modern standards, but it will (usually)
