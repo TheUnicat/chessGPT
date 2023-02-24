@@ -1,17 +1,37 @@
 # chessGPT
 A chess engine built on the decision transformer architecture.
+
+IF YOU DON'T HAVE PYTHON:
+
+Go to python.org and install python.
+Go to the command line or terminal (depending on os) and download repositories by typing the below commands into the shell, one-by-one:
+
+pip install torch
+pip install numpy
+pip install chess
+
+(Try "pip3" on macOS or if pip fails)
+
+Next, download this repository by clicking the green 'Code' button on the main page of the repository, followed by 'local'. Click 'Download ZIP'.
+Unzip file.
+
 Start by moving the directory into your Documents folder. Navigate to the command line and type
 
 cd Documents/chessGPT
 
 ...and hit enter.
-SKIP TRAINING STEP IF YOU ALREADY POSSESS MODEL WEIGHTS (ckpt.pt file). Jump to the "play chess against engine" section.
+
+Training:
+
+SKIP TRAINING STEP IF YOU ALREADY POSSESS MODEL WEIGHTS (ckpt.pt file) in the path chessGPT/out-chessGPT-char/ckpt.pt. Jump to the 'sampling' section.
+
 To train a chessGPT model (add data to data/chess before doing this), simply type 
 
 python3 train.py config/train_chess.py --init_from=resume --device=cuda --max_iters=100000
 
 ...into the command line if you have a GPU. If you only have a MacBook, or other personal computer, replace "cuda" with "cpu" or "mps" (on MacBook).
-This is strongly discouraged as it will take an extremely long time to train the model to even play legal moves.
+This is strongly discouraged as it will take an extremely long time to train the model to even play legal moves. A minimum of one GPU is recommended,
+preferably at least 2 V100s or A100s.
 
 Do NOT torch.compile model, it will fail :(
 
@@ -20,6 +40,8 @@ Dependencies:
 PyTorch (1.13.1 is preferred)
 NumPy
 python-chess
+
+Sampling:
 
 To play chess against the engine, move the ckpt.pt file to out-chessGPT-char (if it isn't there already) and then type
 
