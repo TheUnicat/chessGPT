@@ -225,10 +225,7 @@ def process_moves(filename, outfile):
 
 filenamey = "results_in_front.txt"
 outfiley = "processed_chess.txt"
-print("hi!")
-#sanitize_file("even_more_sanitized_chess.txt", "results_in_front.txt")
-print("DONE!!!!!!")
-# open processed_chess.txt in read mode and individual_chess.txt in write mode
+
 def cleaner():
     game = 0
     bypass = True
@@ -274,10 +271,7 @@ def strip_unfinished():
             else:
                 individual_file.write(line)
                 # if it is not a result line, remove the newline characters and add the line to new_line
-
-#result, last_move = sanitizere(input_file, output_file)
-#cleaner()
-
+                
 def board_encoding(board, black=False):
     encoding = ""
     if black == False:
@@ -312,6 +306,7 @@ def board_encoding(board, black=False):
         encoding += '.'
     return encoding
 
+# THIS IS DEPRECATED
 def add_boards():
     with open("processed_chess.txt", "r") as f, open("10000_base.txt", "w") as to_write:
         counter = 0
@@ -417,7 +412,6 @@ def game_encoder(reward, inputy):
         return returny
     else:
         return out_list[-3] + out_list[-2] + out_list[-1]
-#print(game_encoder(3, "f3 e5 g4"))
 
 def new_add_boards():
     with open("processed_chess.txt", "r") as f, open("2_million_base.txt", "w") as to_write:
@@ -619,204 +613,5 @@ def new_add_boards():
                                     new_line = ""
                                     break
                 to_write.write(new_line)
-                #print(new_line)
-
-#new_add_boards()
-
-def decode_to_move(input_string, output_string):
-    files = {1: 'a', 2: 'b', 3: 'c', 4:'d', 5:'e', 6:'f', 7:'g', 8:'h'}
-    output_string = output_string[len(input_string):]
-    for char in output_string:
-        if char == "w" or char == "W":
-            move = output_string[(output_string.index(char) - 5):(output_string.index(char))]
-            from_square = move[:2]
-            to_square = move[2:4]
-            promotion = move[-1]
-            for value in move[:-1]:
-                try:
-                    if int(value) not in range(1, 9):
-                        print(f"Error. Value {str(value)} not a valid file or rank. Files or ranks must be numbers between 1-8.")
-                        return
-                except:
-                    print(f"Error. Value {str(value)} not a valid file or rank. Files or ranks must be numbers between 1-8.")
-                    return
-            decoded_move = ""
-            decoded_move += str(files[int(from_square[0])])
-            decoded_move += str(int(from_square[1]) + 1)
-            decoded_move += str(files[int(to_square[0])])
-            decoded_move += str(int(to_square[1]) + 1)
-            print(decoded_move)
-            return
-    print("Error: Illegal move. No player specified.")
-    return
-                
-def new_game_encoder(colour, reward, inputy):
-    if 1 == 1:
-        if 2 == 2:
-            if 3 == 3:
-                board = chess.Board()
-                new_line = ""
-                moves = inputy.split(" ")
-                for move in moves:
-                    if move == " " or move == "\n":
-                        moves.pop(moves.index(move))
-                #print(result)
-                # convert result to a scalar value
-                #print(reward)
-                if reward == ",":
-                    if colour == 0:
-                        move_side = 0
-                        for move in moves:
-                            if move_side == 0:
-                                move_side = 1
-                                new_line += pad_string(",")
-                                try:
-                                    board.push_san(move)
-                                except:
-                                    new_line = ""
-                                    break
-                                new_line += algebraic_to_coord(move, board)
-                                new_line += "W"
-                            else:
-                                move_side = 0
-                                try:
-                                    board.push_san(move)
-                                    new_line += board_encoding(board)
-                                except:
-                                    new_line = ""
-                                    break
-                    else:
-                        move_side = 0
-                        for move in moves:
-                            if move_side == 1:
-                                move_side = 0
-                                new_line += pad_string(",")
-                                try:
-                                    board.push_san(move)
-                                except:
-                                    new_line = ""
-                                    break
-                                new_line += algebraic_to_coord(move, board)
-                                new_line += "w"
-                            else:
-                                move_side = 1
-                                try:
-                                    board.push_san(move)
-                                    new_line += board_encoding(board)
-                                except:
-                                    new_line = ""
-                                    break
-                        
-                elif reward[0] == "H":
-                    reward = int(float(reward[1:]))
-                    if colour == 0:
-                        move_side = 0
-                        for move in moves:
-                            if move_side == 0:
-                                move_side = 1
-                                new_line += "H"
-                                new_line += str(reward)
-                                reward += -1
-                                try:
-                                    board.push_san(move)
-                                except:
-                                    new_line = ""
-                                    break
-                                new_line += algebraic_to_coord(move, board)
-                                new_line += "W"
-                            else:
-                                move_side = 0
-                                try:
-                                    board.push_san(move)
-                                    new_line += board_encoding(board)
-                                except:
-                                    print(move)
-                                    print(board)
-                                    new_line = ""
-                                    break
-                    else:
-                        move_side = 0
-                        for move in moves:
-                            if move_side == 1:
-                                move_side = 0
-                                new_line += "H"
-                                new_line += pad_string(str(reward))
-                                reward += -1
-                                try:
-                                    board.push_san(move)
-                                except:
-                                    new_line = ""
-                                    break
-                                new_line += algebraic_to_coord(move, board)
-                                new_line += "w"
-                            else:
-                                move_side = 1
-                                try:
-                                    board.push_san(move)
-                                    new_line += board_encoding(board)
-                                except:
-                                    new_line = ""
-                                    break
-                else:
-                    reward = int(float(reward[1:]))
-                    if colour == 0:
-                        move_side = 0
-                        for move in moves:
-                            if move_side == 0:
-                                move_side = 1
-                                new_line += "X"
-                                new_line += pad_string(str(reward))
-                                reward += -1
-                                try:
-                                    board.push_san(move)
-                                except:
-                                    new_line = ""
-                                    break
-                                new_line += algebraic_to_coord(move, board)
-                                new_line += "W"
-                            else:
-                                move_side = 0
-                                try:
-                                    board.push_san(move)
-                                    new_line += board_encoding(board)
-                                except:
-                                    new_line = ""
-                                    break
-                    else:
-                        move_side = 0
-                        for move in moves:
-                            if move_side == 1:
-                                move_side = 0
-                                new_line += "X"
-                                new_line += pad_string(str(reward))
-                                reward += -1
-                                try:
-                                    board.push_san(move)
-                                except:
-                                    new_line = ""
-                                    break
-                                new_line += algebraic_to_coord(move, board)
-                                new_line += "w"
-                            else:
-                                move_side = 1
-                                try:
-                                    board.push_san(move)
-                                    new_line += board_encoding(board)
-                                except:
-                                    new_line = ""
-                                    break
-    if len(new_line) >= 400:
-        new_line = new_line[len(new_line) - 400:]
-    print(new_line)
-    #print(moves)
-    inputy = input("Enter response:")
-    print(decode_to_move(new_line, inputy))
-#new_game_encoder(20, "H40", """d4 Nf6 c4 e6 Nf3 b6 g3 Ba6 b3 Bb4+ Bd2 Be7 Bg2 O-O O-O d5 Nc3 c6 Bf4 Nbd7 cxd5 exd5 Ne1 Re8 Nd3 Nf8 Bg5 Ne6 Bxf6 Bxf6 e3""")
-
-
-#decode_to_move("""rnbqkbnrpppppppp-------------------P------------PPP-PPPPRNBQKBNRYYYYH404644Mwrn
-#bqkbnrppp-pppp-----------p------PP------------PP--PPPPRNBQKBNRYYYYH394433Mwrnbqkbnrppp-pppp------------------pP--------P---PP---PPPRNBQKBNRYYYY""", """rnbqkbnrppp
-#ppppp-------------------P------------PPP-PPPPRNBQKBNRYYYYH404644Mwrnbqkbnrppp-pppp-----------p------PP------------
-    #           PP--PPPPRNBQKBNRYYYYH394433Mwrnbqkbnrppp-pppp------------------pP--------P---PP---PPPRNBQKBNRYYYYH[[387765Mwrnbqkb-rppp-pppp-----n------------pP--------P-N-PP---PPPRNBQKB-RY""")
-
+               
 
