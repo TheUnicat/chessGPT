@@ -391,8 +391,8 @@ def new_game_encoder(colour, reward, inputy, san=True, is_list=False):
                                 except:
                                     new_line = ""
                                     break
-    if len(new_line) >= 500:
-        new_line = new_line[len(new_line) - 500:]
+    if len(new_line) >= 240:
+        new_line = new_line[len(new_line) - 240:]
     return new_line
     #print(moves)
 def comp_rewards(board, colour, compiley=False, devicey='cpu', home=True, model=False):
@@ -409,9 +409,12 @@ def comp_rewards(board, colour, compiley=False, devicey='cpu', home=True, model=
    # return prompt_gpt(
 #board = chess.Board()
 #print(comp_rewards(board, 0, False, 'cpu', True)[-4:].strip("["))
-def chessGPT(board, moves_list, colour, model=False):
+def chessGPT(board, moves_list, colour, model=False, dynamic_inference=True, returns_to_go=None):
     try:
-        new_prompt_reward = comp_rewards(board, colour, model)[-4:].strip("[")
+        if dynamic_inference == True:
+            new_prompt_reward = comp_rewards(board, colour, model)[-4:].strip("[")
+        else:
+            new_prompt_reward = returns_to_go
         new_prompt = new_game_encoder(colour, "H100", moves_list, san=False, is_list=True)
         new_prompt = parse_and_edit_string(new_prompt, str(new_prompt_reward))
         with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
@@ -458,33 +461,19 @@ def print_pos(pos):
         print(to_printy)
 
 def play_game(model = False):
-    # Initialize the chess board and engine
+    # Initialize the chess board
     board = chess.Board()
-    #engine = chess.engine.SimpleEngine.popen_uci("stockfish")
     did_illegal = False
-    # Choose the player's color randomly
-    #player_color = chess.WHITE if bool(random.getrandbits(1)) else chess.BLACK
-
-    # Initialize the moves list
     moves_list = []
-    #comp_colour = 0 if player_color == chess.WHITE else 1
-    #print(comp_colour)
-    #comp_colour = 0
-    #print(player_color)
     comp_colour = 1
     player_color = chess.BLACK
     # Play the game
-    flag = False
     while not board.is_game_over():
         invalid_count = 0
         if board.turn == player_color:
-            #print(board)
             print_pos(board)
             print("Board after engine move")
             # Get the player's move
-            #print(movess)
-            #for move in moves_list:
-                #print(type(move))
             if model == False:
                 try:
                     player_move = chessGPT(board, moves_list, comp_colour) # Replace with your own implementation
@@ -494,7 +483,6 @@ def play_game(model = False):
                     return len(moves_list), True, 0
                 
             else:
-                flag = True
                 try:
                     player_move = chessGPT(board, moves_list, comp_colour, model) # Replace with your own implementation
                     if player_move == False:
@@ -503,7 +491,6 @@ def play_game(model = False):
                     return len(moves_list), True, 0
             # Make the move on the board
             moveyy = chess.Move.from_uci(player_move)
-            #print(player_move)
             try:
                 if moveyy in list(board.legal_moves):
                     board.push(moveyy)
@@ -512,27 +499,19 @@ def play_game(model = False):
             except:
                 did_illegal = True
                 return len(moves_list), did_illegal, 0
-            #print(board)
             moves_list.append(moveyy)
-            #print(moves_list)
-            # Add the move to the moves list
+           # Add the move to the moves list
         else:
             print_pos(board)
             print("Board after chessGPT move")
             # Get the engine's move
-            #time.sleep(1)
-            #result = engine.play(board, chess.engine.Limit(time=1))
             engine_move = random.choice(list(board.legal_moves))
-            #engine_move = result.move
             # Make the move on the board
             board.push(engine_move)
-            #print(board)
             moves_list.append(engine_move)
-            #print(moves_list)
             # Add the move to the moves list
 
-    # Close the engine
-    #engine.quit()
+
     if board.result() == "1-0":
         result = 0
     elif board.result() == "0-1":
@@ -562,9 +541,11 @@ def metatest(num_games=10, model = False):
     print(f"{str(total_moves / num_games)} moves made on average per game, legally.")
     print(f"{str(total_rewards / num_games)} average reward.")
 
-def play_game_with_human(model = False):
+def play_game_with_human(model = False, dynamic_inference = True):
     # Initialize the chess board
     board = chess.Board()
+    # Initialize rewards (if no dynamic inference)
+    returns_to_go = 100
     did_illegal = False
     # Initialize the moves list
     moves_list = []
@@ -573,7 +554,7 @@ def play_game_with_human(model = False):
     # Play the game
     while not board.is_game_over():
         if board.turn == player_color:
-            print_pos(board):
+            print_pos(board)
             print("It's chessGPT's turn!")
             print("Please wait for the computer to move:")
             print(" ")
@@ -587,7 +568,7 @@ def play_game_with_human(model = False):
                     while valid_move == False:
                         try:
                             #Get chessGPT move and check if illegal. ChessGPT forfeits after trying to make three illegal moves in a row.
-                            player_move = chessGPT(board, moves_list, comp_colour)
+                            player_move = chessGPT(board, moves_list, comp_colour, dynamic_inference=dynamic_inference, returns_to_go = (int(returns_to_go - len(moves_list))))
                             if player_move == False:
                                 invalid_count += 1
                                 if invalid_count > 3:
@@ -670,4 +651,4 @@ def play_game_with_human(model = False):
     return len(moves_list), did_illegal, result
 
 while True:
-    play_game_with_human()
+    play_game_with_human(dynamic_inference=False)
