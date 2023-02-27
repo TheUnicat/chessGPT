@@ -4,6 +4,17 @@ A chess engine built on the decision transformer architecture. Built on the nano
 Currently working on a second version with pretraining on randomly-generated trajectories to reduce overfitting.
 
 
+QUICK START:
+
+Just move model file (ckpt.pt) to out-chessGPT-char and run
+
+cd chessGPT
+python3 play.py
+
+...and a chessboard should pop out of the terminal.
+
+Extended instructions:
+
 python installation:
 
 Go to python.org and install python.
