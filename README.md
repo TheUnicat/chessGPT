@@ -1,5 +1,5 @@
 # chessGPT
-A chess engine built on the decision transformer architecture. Built with nanoGPT by Andrej Karpathy.
+A chess engine built on the decision transformer architecture. Built on the nanoGPT repository made by Andrej Karpathy.
 
 Currently working on a second version with pretraining on randomly-generated trajectories to reduce overfitting.
 
