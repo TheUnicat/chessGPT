@@ -4,7 +4,7 @@ A chess engine built on the decision transformer architecture. Built on the nano
 Currently working on a second version with pretraining on randomly-generated trajectories to reduce overfitting.
 
 
-IF YOU DON'T HAVE PYTHON:
+python installation:
 
 Go to python.org and install python.
 Go to the command line or terminal (depending on os) and download repositories by typing the below commands into the shell, one-by-one:
@@ -30,7 +30,7 @@ cd Documents/chessGPT
 
 Training:
 
-SKIP TRAINING STEP IF YOU ALREADY POSSESS MODEL WEIGHTS (ckpt.pt file) in the path chessGPT/out-chessGPT-char/ckpt.pt. Jump to the 'sampling' section.
+skip training step if you have model file (ckpt.pt file) in the path chessGPT/out-chessGPT-char/ckpt.pt. Jump to the 'sampling' section.
 
 To train a chessGPT model (add data to data/chess before doing this), simply type 
 
