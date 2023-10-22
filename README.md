@@ -1,5 +1,10 @@
 # chessGPT
-A chess engine built on the decision transformer architecture. Built on the nanoGPT repository made by Andrej Karpathy.
+NOTE: This repository contains some of the worst code I've ever written. Please do not equate my general competence with this project.
+
+MODEL: The model weights (to be placed in out-chessGPT-char) can be found at https://huggingface.co/AIBear/ChessGPT-DT-50m/tree/main
+
+
+A chess engine built on the decision transformer architecture. Created with the nanoGPT repository made by Andrej Karpathy.
 
 Currently working on a second version with pretraining on randomly-generated trajectories to reduce overfitting.
 
