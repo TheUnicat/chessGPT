@@ -1,6 +1,4 @@
 # chessGPT
-NOTE: This repository contains some of the worst code I've ever written. Please do not equate my general competence with this project.
-
 MODEL: The model weights (to be placed in out-chessGPT-char) can be found at https://huggingface.co/AIBear/ChessGPT-DT-50m/tree/main
 
 
