@@ -1,5 +1,5 @@
 # chessGPT
-MODEL: The model weights (to be placed in out-chessGPT-char) can be found at https://huggingface.co/AIBear/ChessGPT-DT-50m/tree/main
+MODEL: The model weights (to be placed in out-chessGPT-char) can be found at https://huggingface.co/TheUnicat/ChessGPT-DT-50m/tree/main
 
 
 A chess engine built on the decision transformer architecture. Trained using a modification of the nanoGPT repository made by Andrej Karpathy.
